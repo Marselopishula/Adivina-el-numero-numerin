@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adivina el Número</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #feedback {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #007bff;
+        }
+
+        #warning {
+            font-size: 16px;
+            color: red;
+            margin-top: 10px;
+        }
+
+        #attempts {
+            margin-top: 20px;
+        }
+
+        #inputBox {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #resetButton {
+            margin-top: 20px;
+            background-color: #28a745;
+        }
+
+        #hintButton {
+            margin-top: 10px;
+            background-color: #ffc107;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <h1>Adivina el Número (1-100)</h1>
+        <div id="warning"></div>
+        <button onclick="resetGame()" id="resetButton">Reiniciar</button>
+        <p>Introduce tu estimación:</p>
+        <div id="inputBox">
+            <input type="number" id="userGuess" min="1" max="100" required>
+            <button onclick="checkGuess()">Comprobar</button>
+            <button onclick="giveHint()" id="hintButton">Pista (1 vez)</button>
+        </div>
+        <div id="feedback"></div>
+        <div id="attempts"></div>
+    </div>
+
+    <script>
+        let numeroCorrecto;
+        let intentos = [];
+        let intentosRealizados = 0;
+        let pistaUsada = false;
+        let juegoTerminado = false;
+
+        function startGame() {
+            numeroCorrecto = Math.floor(Math.random() * 100) + 1;
+            intentos = [];
+            intentosRealizados = 0;
+            pistaUsada = false;
+            juegoTerminado = false;
+            document.getElementById('hintButton').style.display = 'block';
+            document.getElementById('hintButton').disabled = false;
+            document.getElementById('hintButton').innerText = 'Pista (1 vez)';
+            document.getElementById('feedback').innerHTML = '';
+            document.getElementById('attempts').innerHTML = '';
+            document.getElementById('warning').innerHTML = '';
+        }
+
+        function checkGuess() {
+            if (!juegoTerminado) {
+                const userGuess = parseInt(document.getElementById('userGuess').value);
+
+                if (!isNaN(userGuess)) {
+                    if (!intentos.find(intent => intent.numero === userGuess)) {
+                        let mensaje = '';
+
+                        if (userGuess === numeroCorrecto) {
+                            mensaje = '¡Felicidades! ¡Has adivinado el número!';
+                            document.getElementById('hintButton').style.display = 'none';
+                            juegoTerminado = true;
+                        } else {
+                            mensaje = `Tu número es ${userGuess > numeroCorrecto ? 'más alto' : 'más bajo'}.`;
+                        }
+
+                        intentos.push({
+                            numero: userGuess,
+                            mensaje: mensaje
+                        });
+                        intentosRealizados++;
+
+                        document.getElementById('feedback').innerHTML = mensaje;
+                        mostrarIntentos();
+
+                        if (intentosRealizados === 10) {
+                            document.getElementById('hintButton').innerText = 'Pista (1 vez) - ¡Solo 5 intentos restantes!';
+                            document.getElementById('warning').innerHTML = '¡Solo 5 intentos restantes!';
+                        }
+
+                        if (intentosRealizados === 15) {
+                            document.getElementById('feedback').innerHTML = '¡Has agotado tus intentos! La respuesta era ' + numeroCorrecto + '.';
+                            document.getElementById('hintButton').disabled = true;
+                            juegoTerminado = true;
+                        }
+                    } else {
+                        document.getElementById('feedback').innerHTML = 'Ya has intentado ese número. ¡Prueba con otro!';
+                    }
+                } else {
+                    document.getElementById('feedback').innerHTML = 'Por favor, ingresa un número válido.';
+                }
+            } else {
+                document.getElementById('warning').innerHTML = '¡El juego ha terminado! No puedes jugar más.';
+            }
+        }
+
+        function mostrarIntentos() {
+            let registro = '<p>Intentos anteriores:</p><ul>';
+            intentos.forEach((intento, index) => {
+                registro += `<li>Intento ${index + 1}: ${intento.numero} - ${intento.mensaje}</li>`;
+            });
+            registro += '</ul>';
+            document.getElementById('attempts').innerHTML = registro;
+        }
+
+        function resetGame() {
+            startGame();
+        }
+
+        function giveHint() {
+            if (!pistaUsada && !juegoTerminado) {
+                const rangoInferior = Math.max(1, numeroCorrecto - 10);
+                const rangoSuperior = Math.min(100, numeroCorrecto + 10);
+                const pista = `La respuesta está entre ${rangoInferior} y ${rangoSuperior}.`;
+                document.getElementById('feedback').innerHTML = pista;
+                pistaUsada = true;
+                document.getElementById('hintButton').style.display = 'none';
+            }
+        }
+
+        // Iniciar el juego al cargar la página
+        window.onload = startGame;
+    </script>
+</body>
+
+</html>
+
